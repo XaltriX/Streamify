@@ -2,7 +2,7 @@
 
 from aiohttp import web
 from plugins import web_server
-from pyrogram.types import ChatJoinRequest
+
 import pyromod.listen
 import pyrogram
 from pyrogram import Client
@@ -16,10 +16,8 @@ pyrogram.utils.MIN_CHAT_ID = -999999999999
 pyrogram.utils.MIN_CHANNEL_ID = -100999999999999
 
 class Bot(Client):
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         super().__init__(
-            *args,
-            **kwargs,
             name="Bot",
             api_hash=API_HASH,
             api_id=APP_ID,
@@ -29,8 +27,6 @@ class Bot(Client):
             workers=TG_BOT_WORKERS,
             bot_token=TG_BOT_TOKEN
         )
-        self.invitelink = None
-        self.invitelink2 = None
         self.LOGGER = LOGGER
 
     async def start(self):
@@ -40,26 +36,17 @@ class Bot(Client):
 
         if FORCE_SUB_CHANNEL:
             try:
-                chat = await self.get_chat(FORCE_SUB_CHANNEL)
-                
-                if chat.invite_link is None:
+                link = (await self.get_chat(FORCE_SUB_CHANNEL)).invite_link
+                if not link:
                     await self.export_chat_invite_link(FORCE_SUB_CHANNEL)
-                    chat = await self.get_chat(FORCE_SUB_CHANNEL)
-
-                self.invitelink = chat.invite_link
-                self.invitelink2 = self.invitelink
-            
-            except Exception as e:
-                self.LOGGER(__name__).warning(e)
-                self.LOGGER(__name__).warning("Bot can't export invite link from Force Sub Channel!")
-                self.LOGGER(__name__).warning(f"Please double-check the FORCE_SUB_CHANNEL value and ensure the bot is admin with 'Invite Users via Link' permission. Current Force Sub Channel Value: {FORCE_SUB_CHANNEL}")
+                    link = (await self.get_chat(FORCE_SUB_CHANNEL)).invite_link
+                self.invitelink = link
+            except Exception as a:
+                self.LOGGER(__name__).warning(a)
+                self.LOGGER(__name__).warning("Bot can't Export Invite link from Force Sub Channel!")
+                self.LOGGER(__name__).warning(f"Please Double check the FORCE_SUB_CHANNEL value and Make sure Bot is Admin in channel with Invite Users via Link Permission, Current Force Sub Channel Value: {FORCE_SUB_CHANNEL}")
                 self.LOGGER(__name__).info("\nBot Stopped. Join https://t.me/nextgenbotz for support")
                 sys.exit()
-
-    
-
-
-       
         if FORCE_SUB_CHANNEL2:
             try:
                 link = (await self.get_chat(FORCE_SUB_CHANNEL2)).invite_link
@@ -85,30 +72,15 @@ class Bot(Client):
             sys.exit()
 
         self.set_parse_mode(ParseMode.HTML)
-        self.LOGGER(__name__).info(f"Bot Running..!\n\nCreated by \nhttps://t.me/nextgenbotz")
-        self.LOGGER(__name__).info(f""" \n\n 
-███╗░░██╗███████╗██╗░░██╗████████╗░██████╗░███████╗███╗░░██╗██████╗░░█████╗░████████╗███████╗
-████╗░██║██╔════╝╚██╗██╔╝╚══██╔══╝██╔════╝░██╔════╝████╗░██║██╔══██╗██╔══██╗╚══██╔══╝╚════██║
-██╔██╗██║█████╗░░░╚███╔╝░░░░██║░░░██║░░██╗░█████╗░░██╔██╗██║██████╦╝██║░░██║░░░██║░░░░░███╔═╝
-██║╚████║██╔══╝░░░██╔██╗░░░░██║░░░██║░░╚██╗██╔══╝░░██║╚████║██╔══██╗██║░░██║░░░██║░░░██╔══╝░░
-██║░╚███║███████╗██╔╝╚██╗░░░██║░░░╚██████╔╝███████╗██║░╚███║██████╦╝╚█████╔╝░░░██║░░░███████╗
-╚═╝░░╚══╝╚══════╝╚═╝░░╚═╝░░░╚═╝░░░░╚═════╝░╚══════╝╚═╝░░╚══╝╚═════╝░░╚════╝░░░░╚═╝░░░╚══════╝
-                                          """)
+        self.LOGGER(__name__).info(f"Bot Running..!\n\nCreated by \nhttps://t.me/CodeXBotz")
+        print(ascii_art)
+        print("""Welcome to CodeXBotz File Sharing Bot""")
         self.username = usr_bot_me.username
         #web-response
         app = web.AppRunner(await web_server())
         await app.setup()
         bind_address = "0.0.0.0"
         await web.TCPSite(app, bind_address, PORT).start()
-
-    async def on_chat_join_request(self, request: ChatJoinRequest):
-        try:
-            if request.chat.id == FORCE_SUB_CHANNEL:
-                await self.approve_chat_join_request(request.chat.id, request.from_user.id)
-                self.LOGGER(__name__).info(f"Approved join request from {request.from_user.first_name} in {FORCE_SUB_CHANNEL}")
-        except Exception as e:
-            self.LOGGER(__name__).warning(f"Failed to approve join request: {e}")
-            
 
     async def stop(self, *args):
         await super().stop()
