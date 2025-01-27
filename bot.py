@@ -72,8 +72,15 @@ class Bot(Client):
             sys.exit()
 
         self.set_parse_mode(ParseMode.HTML)
-        self.LOGGER(__name__).info(f"Bot Running..!\n\nCreated by \nhttps://t.me/CodeXBotz")
-        print("""Welcome to appun Sumit hai bidu File Sharing Bot""")
+        self.LOGGER(__name__).info(f"Bot Running..!\n\nCreated by \nhttps://t.me/nextgenbotz")
+        self.LOGGER(__name__).info(f""" \n\n 
+███╗░░██╗███████╗██╗░░██╗████████╗░██████╗░███████╗███╗░░██╗██████╗░░█████╗░████████╗███████╗
+████╗░██║██╔════╝╚██╗██╔╝╚══██╔══╝██╔════╝░██╔════╝████╗░██║██╔══██╗██╔══██╗╚══██╔══╝╚════██║
+██╔██╗██║█████╗░░░╚███╔╝░░░░██║░░░██║░░██╗░█████╗░░██╔██╗██║██████╦╝██║░░██║░░░██║░░░░░███╔═╝
+██║╚████║██╔══╝░░░██╔██╗░░░░██║░░░██║░░╚██╗██╔══╝░░██║╚████║██╔══██╗██║░░██║░░░██║░░░██╔══╝░░
+██║░╚███║███████╗██╔╝╚██╗░░░██║░░░╚██████╔╝███████╗██║░╚███║██████╦╝╚█████╔╝░░░██║░░░███████╗
+╚═╝░░╚══╝╚══════╝╚═╝░░╚═╝░░░╚═╝░░░░╚═════╝░╚══════╝╚═╝░░╚══╝╚═════╝░░╚════╝░░░░╚═╝░░░╚══════╝
+                                          """)
         self.username = usr_bot_me.username
         #web-response
         app = web.AppRunner(await web_server())
