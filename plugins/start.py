@@ -26,7 +26,7 @@ from config import (
     DISABLE_CHANNEL_BUTTON,
     PROTECT_CONTENT,
     TUT_VID,
-    OWNER_ID,
+    OWNER_ID, JOIN_REQUEST_ENABLE ,SECOND_JOIN_REQUEST_ENABLE
 )
 from helper_func import subscribed, encode, decode, get_messages, get_shortlink, get_verify_status, update_verify_status, get_exp_time
 from database.database import add_user, del_user, full_userbase, present_user
@@ -168,16 +168,40 @@ REPLY_ERROR = """<code>Use this command as a replay to any telegram message with
     
 @Bot.on_message(filters.command('start') & filters.private)
 async def not_joined(client: Client, message: Message):
+
+    # First channel forced subscription check
+    if bool(JOIN_REQUEST_ENABLE):
+        invite = await client.create_chat_invite_link(
+            chat_id=FORCE_SUB_CHANNEL,
+            creates_join_request=True
+        )
+        ButtonUrl = invite.invite_link
+    else:
+        ButtonUrl = client.invitelink
+
+    # Second forced subscription check for another channel
+    if bool(SECOND_JOIN_REQUEST_ENABLE):
+        second_invite = await client.create_chat_invite_link(
+            chat_id=SECOND_FORCE_SUB_CHANNEL,
+            creates_join_request=True
+        )
+        SecondButtonUrl = second_invite.invite_link
+    else:
+        SecondButtonUrl = client.invitelink
+
     buttons = [
         [
             InlineKeyboardButton(
-                "Join Channel",
-                url = client.invitelink),
+                "Join First Channel",
+                url = ButtonUrl)
+        ],
+        [
             InlineKeyboardButton(
-                "Join Channel",
-                url = client.invitelink2),
+                "Join Second Channel",
+                url = SecondButtonUrl)
         ]
     ]
+
     try:
         buttons.append(
             [
