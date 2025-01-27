@@ -73,8 +73,7 @@ class Bot(Client):
 
         self.set_parse_mode(ParseMode.HTML)
         self.LOGGER(__name__).info(f"Bot Running..!\n\nCreated by \nhttps://t.me/CodeXBotz")
-        print(ascii_art)
-        print("""Welcome to CodeXBotz File Sharing Bot""")
+        print("""Welcome to appun Sumit hai bidu File Sharing Bot""")
         self.username = usr_bot_me.username
         #web-response
         app = web.AppRunner(await web_server())
