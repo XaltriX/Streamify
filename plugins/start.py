@@ -170,7 +170,6 @@ REPLY_ERROR = """<code>Use this command as a replay to any telegram message with
 @Bot.on_message(filters.command('start') & filters.private)
 async def not_joined(client: Client, message: Message):
     try:
-        # Agar join request enable hai, to invite link ke liye logic
         if bool(JOIN_REQUEST_ENABLE):
             invite = await client.create_chat_invite_link(
                 chat_id=FORCE_SUB_CHANNEL,
@@ -178,21 +177,15 @@ async def not_joined(client: Client, message: Message):
             )
             ButtonUrl = invite.invite_link
         else:
-            ButtonUrl = client.invitelink  # 'invitelink' ko pehle define karna zaroori hai
-        
-        # Button list define karna
+            ButtonUrl = client.invitelink
+
         buttons = [
             [
-                InlineKeyboardButton(
-                    "Join Channel",
-                    url=ButtonUrl),
-                InlineKeyboardButton(
-                    "Join Channel",
-                    url=client.invitelink2),  # Ensure invitelink2 properly exists
+                InlineKeyboardButton("Join Channel", url=ButtonUrl),
+                InlineKeyboardButton("Join Channel", url=client.invitelink2),
             ]
         ]
 
-        # 'Try Again' button add karte waqt command check karo
         if len(message.command) > 1:
             buttons.append(
                 [
@@ -203,7 +196,7 @@ async def not_joined(client: Client, message: Message):
                 ]
             )
 
-        # Message send karo user ko
+        # Reply message bhejne ki koshish
         await message.reply(
             text=FORCE_MSG.format(
                 first=message.from_user.first_name,
@@ -217,8 +210,10 @@ async def not_joined(client: Client, message: Message):
             disable_web_page_preview=True
         )
     except Exception as e:
-        # Exception handling ke liye ek error message bhejo
-        print(f"Error occurred in not_joined: {e}")
+        if "USER_IS_BLOCKED" in str(e):
+            print(f"User {message.from_user.id} ne bot ko block kiya hai.")
+        else:
+            print(f"Error occurred in not_joined: {e}")
 
 
 @Bot.on_message(filters.command('users') & filters.private & filters.user(ADMINS))
