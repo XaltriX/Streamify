@@ -17,8 +17,6 @@ from bot import Bot
 from config import (
     ADMINS,
     FORCE_MSG,
-    JOIN_REQUEST_ENABLE,
-    FORCE_SUB_CHANNEL,
     START_MSG,
     CUSTOM_CAPTION,
     IS_VERIFY,
@@ -143,7 +141,7 @@ async def start_command(client: Client, message: Message):
             verify_status = await get_verify_status(id)
             if IS_VERIFY and not verify_status['is_verified']:
                 short_url = f"api.shareus.io"
-                full_tut_url = f"https://t.me/All_Movie_Star_Link"
+                full_tut_url = f"https://t.me/How_to_download_tutorial_idk/2"
                 token = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
                 await update_verify_status(id, verify_token=token, link="")
                 link = await get_shortlink(SHORTLINK_URL, SHORTLINK_API,f'https://telegram.dog/{client.username}?start=verify_{token}')
@@ -166,55 +164,44 @@ REPLY_ERROR = """<code>Use this command as a replay to any telegram message with
 
 #=====================================================================================##
 
-
+    
+    
 @Bot.on_message(filters.command('start') & filters.private)
 async def not_joined(client: Client, message: Message):
-    try:
-        if bool(JOIN_REQUEST_ENABLE):
-            invite = await client.create_chat_invite_link(
-                chat_id=FORCE_SUB_CHANNEL,
-                creates_join_request=True
-            )
-            ButtonUrl = invite.invite_link
-        else:
-            ButtonUrl = client.invitelink
-
-        buttons = [
-            [
-                InlineKeyboardButton("Join Channel", url=ButtonUrl),
-                InlineKeyboardButton("Join Channel", url=client.invitelink2),
-            ]
+    buttons = [
+        [
+            InlineKeyboardButton(
+                "Join Channel",
+                url = client.invitelink),
+            InlineKeyboardButton(
+                "Join Channel",
+                url = client.invitelink2),
         ]
-
-        if len(message.command) > 1:
-            buttons.append(
-                [
-                    InlineKeyboardButton(
-                        text='Try Again',
-                        url=f"https://t.me/{client.username}?start={message.command[1]}"
-                    )
-                ]
-            )
-
-        # Reply message bhejne ki koshish
-        await message.reply(
-            text=FORCE_MSG.format(
-                first=message.from_user.first_name,
-                last=message.from_user.last_name,
-                username=None if not message.from_user.username else '@' + message.from_user.username,
-                mention=message.from_user.mention,
-                id=message.from_user.id
-            ),
-            reply_markup=InlineKeyboardMarkup(buttons),
-            quote=True,
-            disable_web_page_preview=True
+    ]
+    try:
+        buttons.append(
+            [
+                InlineKeyboardButton(
+                    text = 'Try Again',
+                    url = f"https://t.me/{client.username}?start={message.command[1]}"
+                )
+            ]
         )
-    except Exception as e:
-        if "USER_IS_BLOCKED" in str(e):
-            print(f"User {message.from_user.id} ne bot ko block kiya hai.")
-        else:
-            print(f"Error occurred in not_joined: {e}")
+    except IndexError:
+        pass
 
+    await message.reply(
+        text = FORCE_MSG.format(
+                first = message.from_user.first_name,
+                last = message.from_user.last_name,
+                username = None if not message.from_user.username else '@' + message.from_user.username,
+                mention = message.from_user.mention,
+                id = message.from_user.id
+            ),
+        reply_markup = InlineKeyboardMarkup(buttons),
+        quote = True,
+        disable_web_page_preview = True
+    )
 
 @Bot.on_message(filters.command('users') & filters.private & filters.user(ADMINS))
 async def get_users(client: Bot, message: Message):
