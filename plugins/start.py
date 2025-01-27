@@ -18,7 +18,7 @@ from config import (
     ADMINS,
     FORCE_MSG,
     JOIN_REQUEST_ENABLE,
-    FORCE_SUB_CHANNEL
+    FORCE_SUB_CHANNEL,
     START_MSG,
     CUSTOM_CAPTION,
     IS_VERIFY,
