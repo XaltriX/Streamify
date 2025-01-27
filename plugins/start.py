@@ -169,51 +169,56 @@ REPLY_ERROR = """<code>Use this command as a replay to any telegram message with
 
 @Bot.on_message(filters.command('start') & filters.private)
 async def not_joined(client: Client, message: Message):
-
-    if bool(JOIN_REQUEST_ENABLE):
-        invite = await client.create_chat_invite_link(
-            chat_id=FORCE_SUB_CHANNEL,
-            creates_join_request=True
-        )
-        ButtonUrl = invite.invite_link
-    else:
-        ButtonUrl = client.invitelink
-
-    buttons = [
-        [
-            InlineKeyboardButton(
-                "Join Channel",
-                url = ButtonUrl),
-            InlineKeyboardButton(
-                "Join Channel",
-                url = client.invitelink2),
-        ]
-    ]
-
     try:
-        buttons.append(
+        # Agar join request enable hai, to invite link ke liye logic
+        if bool(JOIN_REQUEST_ENABLE):
+            invite = await client.create_chat_invite_link(
+                chat_id=FORCE_SUB_CHANNEL,
+                creates_join_request=True
+            )
+            ButtonUrl = invite.invite_link
+        else:
+            ButtonUrl = client.invitelink  # 'invitelink' ko pehle define karna zaroori hai
+        
+        # Button list define karna
+        buttons = [
             [
                 InlineKeyboardButton(
-                    text = 'Try Again',
-                    url = f"https://t.me/{client.username}?start={message.command[1]}"
-                )
+                    "Join Channel",
+                    url=ButtonUrl),
+                InlineKeyboardButton(
+                    "Join Channel",
+                    url=client.invitelink2),  # Ensure invitelink2 properly exists
             ]
-        )
-    except IndexError:
-        pass
+        ]
 
-    await message.reply(
-        text = FORCE_MSG.format(
-                first = message.from_user.first_name,
-                last = message.from_user.last_name,
-                username = None if not message.from_user.username else '@' + message.from_user.username,
-                mention = message.from_user.mention,
-                id = message.from_user.id
+        # 'Try Again' button add karte waqt command check karo
+        if len(message.command) > 1:
+            buttons.append(
+                [
+                    InlineKeyboardButton(
+                        text='Try Again',
+                        url=f"https://t.me/{client.username}?start={message.command[1]}"
+                    )
+                ]
+            )
+
+        # Message send karo user ko
+        await message.reply(
+            text=FORCE_MSG.format(
+                first=message.from_user.first_name,
+                last=message.from_user.last_name,
+                username=None if not message.from_user.username else '@' + message.from_user.username,
+                mention=message.from_user.mention,
+                id=message.from_user.id
             ),
-        reply_markup = InlineKeyboardMarkup(buttons),
-        quote = True,
-        disable_web_page_preview = True
-    )   
+            reply_markup=InlineKeyboardMarkup(buttons),
+            quote=True,
+            disable_web_page_preview=True
+        )
+    except Exception as e:
+        # Exception handling ke liye ek error message bhejo
+        print(f"Error occurred in not_joined: {e}")
 
 
 @Bot.on_message(filters.command('users') & filters.private & filters.user(ADMINS))
