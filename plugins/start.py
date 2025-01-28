@@ -168,6 +168,10 @@ REPLY_ERROR = """<code>Use this command as a replay to any telegram message with
     
 @Client.on_message(filters.command('start') & filters.private)
 async def not_joined(client: Client, message: Message):
+    # Call the send_join_request function
+    await send_join_request(client, message)
+    
+async def send_join_request(client: Client, message: Message):
     # First channel forced subscription check
     if JOIN_REQUEST_ENABLE:
         invite = await client.create_chat_invite_link(
@@ -206,6 +210,7 @@ async def not_joined(client: Client, message: Message):
     except IndexError:
         pass
 
+    # Send the reply with join buttons
     await message.reply(
         text=FORCE_MSG.format(
             first=message.from_user.first_name,
@@ -216,8 +221,9 @@ async def not_joined(client: Client, message: Message):
         ),
         reply_markup=InlineKeyboardMarkup(buttons),
         quote=True,
-        disable_web_page_preview=True,
+        disable_web_page_preview=True
     )
+
 
 @Bot.on_message(filters.command('users') & filters.private & filters.user(ADMINS))
 async def get_users(client: Bot, message: Message):
