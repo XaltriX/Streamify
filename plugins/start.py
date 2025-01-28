@@ -223,16 +223,12 @@ async def send_join_request(client: Client, message: Message):
             [InlineKeyboardButton(f"Join {second_channel_name}", url=SecondButtonUrl)],
         ]
 
-        # Optional "Try Again" button
-        if len(message.command) > 1:  # Check if command argument exists
-            buttons.append(
-                [InlineKeyboardButton(
-                    text="Try Again",
-                    url=f"https://t.me/{client.username}?start={message.command[1]}"
-                )]
-            )
+        # Try Again button
+        if len(message.command) > 1 and message.command[1].strip():
+            try_again_url = f"https://t.me/{client.username}?start={message.command[1]}"
+            buttons.append([InlineKeyboardButton("Try Again", url=try_again_url)])
         else:
-            logger.warning("No additional argument provided for 'Try Again' button.")
+            logger.warning("No valid argument provided for 'Try Again' button.")
 
         # Reply to the user
         await message.reply(
