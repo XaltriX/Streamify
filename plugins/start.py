@@ -174,7 +174,6 @@ REPLY_ERROR = """<code>Use this command as a replay to any telegram message with
 @Client.on_message(filters.command('start') & filters.private)
 async def not_joined(client: Client, message: Message):
     try:
-        # Call the send_join_request function
         await send_join_request(client, message)
     except Exception as e:
         logger.error(f"Error in not_joined: {e}")
@@ -216,7 +215,8 @@ async def send_join_request(client: Client, message: Message):
             [InlineKeyboardButton("Join Second Channel", url=SecondButtonUrl)],
         ]
 
-        try:
+        # Check for additional argument and append "Try Again" button only if available
+        if len(message.command) > 1:  # Check if argument exists
             buttons.append(
                 [
                     InlineKeyboardButton(
@@ -225,8 +225,8 @@ async def send_join_request(client: Client, message: Message):
                     )
                 ]
             )
-        except IndexError as e:
-            logger.warning(f"Error appending 'Try Again' button: {e}")
+        else:
+            logger.warning("No additional argument provided for 'Try Again' button.")
 
         # Send the reply with join buttons
         await message.reply(
@@ -246,7 +246,7 @@ async def send_join_request(client: Client, message: Message):
         logger.error(f"Error in send_join_request: {e}")
         await message.reply("There was an error processing your request. Please try again later.")
 
-
+        
 @Bot.on_message(filters.command('users') & filters.private & filters.user(ADMINS))
 async def get_users(client: Bot, message: Message):
     msg = await client.send_message(chat_id=message.chat.id, text=WAIT_MSG)
