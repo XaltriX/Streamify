@@ -32,6 +32,10 @@ from helper_func import subscribed, encode, decode, get_messages, get_shortlink,
 from database.database import add_user, del_user, full_userbase, present_user
 from shortzy import Shortzy
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
     id = message.from_user.id
@@ -165,63 +169,83 @@ REPLY_ERROR = """<code>Use this command as a replay to any telegram message with
 #=====================================================================================##
 
     
-    
+   
+# Define the main logic
 @Client.on_message(filters.command('start') & filters.private)
 async def not_joined(client: Client, message: Message):
-    # Call the send_join_request function
-    await send_join_request(client, message)
+    try:
+        # Call the send_join_request function
+        await send_join_request(client, message)
+    except Exception as e:
+        logger.error(f"Error in not_joined: {e}")
+        await message.reply("There was an error processing your request. Please try again later.")
 
 async def send_join_request(client: Client, message: Message):
-    # First channel forced subscription check
-    if JOIN_REQUEST_ENABLE:
-        invite = await client.create_chat_invite_link(
-            chat_id=FORCE_SUB_CHANNEL,
-            creates_join_request=True
-        )
-        ButtonUrl = invite.invite_link
-    else:
-        ButtonUrl = f"https://t.me/{client.username}"  # Default link
-
-    # Second forced subscription check
-    if SECOND_JOIN_REQUEST_ENABLE:
-        second_invite = await client.create_chat_invite_link(
-            chat_id=FORCE_SUB_CHANNEL2,
-            creates_join_request=True
-        )
-        SecondButtonUrl = second_invite.invite_link
-    else:
-        SecondButtonUrl = f"https://t.me/{client.username}"  # Default link
-
-    # Buttons for joining channels
-    buttons = [
-        [InlineKeyboardButton("Join First Channel", url=ButtonUrl)],
-        [InlineKeyboardButton("Join Second Channel", url=SecondButtonUrl)],
-    ]
-
     try:
-        buttons.append(
-            [
-                InlineKeyboardButton(
-                    text="Try Again",
-                    url=f"https://t.me/{client.username}?start={message.command[1]}"
+        # First channel forced subscription check
+        if JOIN_REQUEST_ENABLE:
+            try:
+                invite = await client.create_chat_invite_link(
+                    chat_id=FORCE_SUB_CHANNEL,
+                    creates_join_request=True
                 )
-            ]
-        )
-    except IndexError:
-        pass
+                ButtonUrl = invite.invite_link
+            except Exception as e:
+                logger.error(f"Error creating invite link for first channel: {e}")
+                ButtonUrl = f"https://t.me/{client.username}"  # Default link
+        else:
+            ButtonUrl = f"https://t.me/{client.username}"  # Default link
 
-    # Send the reply with join buttons
-    await message.reply(
-        text=FORCE_MSG.format(
-            first=message.from_user.first_name,
-            last=message.from_user.last_name,
-            username=None if not message.from_user.username else '@' + message.from_user.username,
-            mention=message.from_user.mention,
-            id=message.from_user.id,
-        ),
-        reply_markup=InlineKeyboardMarkup(buttons),
-        quote=True,
-        disable_web_page_preview=True
+        # Second forced subscription check
+        if SECOND_JOIN_REQUEST_ENABLE:
+            try:
+                second_invite = await client.create_chat_invite_link(
+                    chat_id=FORCE_SUB_CHANNEL2,
+                    creates_join_request=True
+                )
+                SecondButtonUrl = second_invite.invite_link
+            except Exception as e:
+                logger.error(f"Error creating invite link for second channel: {e}")
+                SecondButtonUrl = f"https://t.me/{client.username}"  # Default link
+        else:
+            SecondButtonUrl = f"https://t.me/{client.username}"  # Default link
+
+        # Buttons for joining channels
+        buttons = [
+            [InlineKeyboardButton("Join First Channel", url=ButtonUrl)],
+            [InlineKeyboardButton("Join Second Channel", url=SecondButtonUrl)],
+        ]
+
+        try:
+            buttons.append(
+                [
+                    InlineKeyboardButton(
+                        text="Try Again",
+                        url=f"https://t.me/{client.username}?start={message.command[1]}"
+                    )
+                ]
+            )
+        except IndexError as e:
+            logger.warning(f"Error appending 'Try Again' button: {e}")
+
+        # Send the reply with join buttons
+        await message.reply(
+            text=FORCE_MSG.format(
+                first=message.from_user.first_name,
+                last=message.from_user.last_name,
+                username=None if not message.from_user.username else '@' + message.from_user.username,
+                mention=message.from_user.mention,
+                id=message.from_user.id,
+            ),
+            reply_markup=InlineKeyboardMarkup(buttons),
+            quote=True,
+            disable_web_page_preview=True
+        )
+
+    except Exception as e:
+        logger.error(f"Error in send_join_request: {e}")
+        await message.reply("There was an error processing your request. Please try again later.")
+
     )
 
 @Bot.on_message(filters.command('users') & filters.private & filters.user(ADMINS))
