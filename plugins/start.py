@@ -170,7 +170,7 @@ REPLY_ERROR = """<code>Use this command as a replay to any telegram message with
 async def not_joined(client: Client, message: Message):
     # Call the send_join_request function
     await send_join_request(client, message)
-    
+
 async def send_join_request(client: Client, message: Message):
     # First channel forced subscription check
     if JOIN_REQUEST_ENABLE:
@@ -223,7 +223,6 @@ async def send_join_request(client: Client, message: Message):
         quote=True,
         disable_web_page_preview=True
     )
-
 
 @Bot.on_message(filters.command('users') & filters.private & filters.user(ADMINS))
 async def get_users(client: Bot, message: Message):
