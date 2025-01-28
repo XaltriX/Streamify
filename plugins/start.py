@@ -217,18 +217,15 @@ async def send_join_request(client: Client, message: Message):
             SecondButtonUrl = f"https://t.me/{client.username}"  # Default URL
             second_channel_name = "Second Channel"
 
+        # "Try Again" button logic
+        try_again_url = f"https://t.me/{client.username}?start={message.command[1]}" if len(message.command) > 1 and message.command[1].strip() else f"https://t.me/{client.username}?start=start"
+
         # Buttons for subscription
         buttons = [
             [InlineKeyboardButton(f"Join {first_channel_name}", url=ButtonUrl)],
             [InlineKeyboardButton(f"Join {second_channel_name}", url=SecondButtonUrl)],
+            [InlineKeyboardButton("Try Again", url=try_again_url)]
         ]
-
-        # Try Again button
-        if len(message.command) > 1 and message.command[1].strip():
-            try_again_url = f"https://t.me/{client.username}?start={message.command[1]}"
-            buttons.append([InlineKeyboardButton("Try Again", url=try_again_url)])
-        else:
-            logger.warning("No valid argument provided for 'Try Again' button.")
 
         # Reply to the user
         await message.reply(
@@ -248,7 +245,7 @@ async def send_join_request(client: Client, message: Message):
         logger.error(f"Error in send_join_request: {e}")
         await message.reply("There was an error processing your request. Please try again later.")
 
-        
+   
 @Bot.on_message(filters.command('users') & filters.private & filters.user(ADMINS))
 async def get_users(client: Bot, message: Message):
     msg = await client.send_message(chat_id=message.chat.id, text=WAIT_MSG)
