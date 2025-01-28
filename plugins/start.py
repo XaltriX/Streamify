@@ -13,7 +13,7 @@ from pyrogram.enums import ParseMode
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 
-from bot import Bot
+from bot import Bot ,app  # app ko properly import kijiye
 from config import (
     ADMINS,
     FORCE_MSG,
