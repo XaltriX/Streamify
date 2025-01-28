@@ -246,7 +246,6 @@ async def send_join_request(client: Client, message: Message):
         logger.error(f"Error in send_join_request: {e}")
         await message.reply("There was an error processing your request. Please try again later.")
 
-    )
 
 @Bot.on_message(filters.command('users') & filters.private & filters.user(ADMINS))
 async def get_users(client: Bot, message: Message):
