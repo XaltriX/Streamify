@@ -221,7 +221,7 @@ async def send_join_request(client: Client, message: Message):
                 [
                     InlineKeyboardButton(
                         text="Try Again",
-                        url=f"https://t.me/{client.username}?start={message.command[1]}"
+                        url=f"https://t.me/{client.username}?start={message.command[2]}"
                     )
                 ]
             )
