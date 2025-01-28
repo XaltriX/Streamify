@@ -171,7 +171,8 @@ REPLY_ERROR = """<code>Use this command as a replay to any telegram message with
     
    
 # Define the main logic
-@Client.on_message(filters.command('start') & filters.private)
+
+@app.on_message(filters.command("start") & filters.private)
 async def not_joined(client: Client, message: Message):
     try:
         await send_join_request(client, message)
@@ -179,9 +180,10 @@ async def not_joined(client: Client, message: Message):
         logger.error(f"Error in not_joined: {e}")
         await message.reply("There was an error processing your request. Please try again later.")
 
+
 async def send_join_request(client: Client, message: Message):
     try:
-        # First channel forced subscription check
+        # First channel join request
         if JOIN_REQUEST_ENABLE:
             try:
                 invite = await client.create_chat_invite_link(
@@ -189,13 +191,16 @@ async def send_join_request(client: Client, message: Message):
                     creates_join_request=True
                 )
                 ButtonUrl = invite.invite_link
+                first_channel_name = (await client.get_chat(FORCE_SUB_CHANNEL)).title
             except Exception as e:
                 logger.error(f"Error creating invite link for first channel: {e}")
-                ButtonUrl = f"https://t.me/{client.username}"  # Default link
+                ButtonUrl = f"https://t.me/{client.username}"  # Fallback URL
+                first_channel_name = "First Channel"
         else:
-            ButtonUrl = f"https://t.me/{client.username}"  # Default link
+            ButtonUrl = f"https://t.me/{client.username}"  # Default URL
+            first_channel_name = "First Channel"
 
-        # Second forced subscription check
+        # Second channel join request
         if SECOND_JOIN_REQUEST_ENABLE:
             try:
                 second_invite = await client.create_chat_invite_link(
@@ -203,32 +208,33 @@ async def send_join_request(client: Client, message: Message):
                     creates_join_request=True
                 )
                 SecondButtonUrl = second_invite.invite_link
+                second_channel_name = (await client.get_chat(FORCE_SUB_CHANNEL2)).title
             except Exception as e:
                 logger.error(f"Error creating invite link for second channel: {e}")
-                SecondButtonUrl = f"https://t.me/{client.username}"  # Default link
+                SecondButtonUrl = f"https://t.me/{client.username}"  # Fallback URL
+                second_channel_name = "Second Channel"
         else:
-            SecondButtonUrl = f"https://t.me/{client.username}"  # Default link
+            SecondButtonUrl = f"https://t.me/{client.username}"  # Default URL
+            second_channel_name = "Second Channel"
 
-        # Buttons for joining channels
+        # Buttons for subscription
         buttons = [
-            [InlineKeyboardButton("Join First Channel", url=ButtonUrl)],
-            [InlineKeyboardButton("Join Second Channel", url=SecondButtonUrl)],
+            [InlineKeyboardButton(f"Join {first_channel_name}", url=ButtonUrl)],
+            [InlineKeyboardButton(f"Join {second_channel_name}", url=SecondButtonUrl)],
         ]
 
-        # Check for additional argument and append "Try Again" button only if available
-        if len(message.command) > 1:  # Check if argument exists
+        # Optional "Try Again" button
+        if len(message.command) > 1:  # Check if command argument exists
             buttons.append(
-                [
-                    InlineKeyboardButton(
-                        text="Try Again",
-                        url=f"https://t.me/{client.username}?start={message.command[2]}"
-                    )
-                ]
+                [InlineKeyboardButton(
+                    text="Try Again",
+                    url=f"https://t.me/{client.username}?start={message.command[1]}"
+                )]
             )
         else:
             logger.warning("No additional argument provided for 'Try Again' button.")
 
-        # Send the reply with join buttons
+        # Reply to the user
         await message.reply(
             text=FORCE_MSG.format(
                 first=message.from_user.first_name,
