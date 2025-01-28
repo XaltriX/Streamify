@@ -13,7 +13,7 @@ from pyrogram.enums import ParseMode
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 
-from bot import Bot ,app  # app ko properly import kijiye
+from bot import Bot  # app ko properly import kijiye
 from config import (
     ADMINS,
     FORCE_MSG,
@@ -172,7 +172,7 @@ REPLY_ERROR = """<code>Use this command as a replay to any telegram message with
    
 # Define the main logic
 
-@app.on_message(filters.command("start") & filters.private)
+@Bot.on_message(filters.command("start") & filters.private)
 async def not_joined(client: Client, message: Message):
     try:
         await send_join_request(client, message)
