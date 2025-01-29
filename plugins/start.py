@@ -13,7 +13,7 @@ from pyrogram.enums import ParseMode
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 
-from bot import Bot  # app ko properly import kijiye
+from bot import Bot
 from config import (
     ADMINS,
     FORCE_MSG,
@@ -26,15 +26,11 @@ from config import (
     DISABLE_CHANNEL_BUTTON,
     PROTECT_CONTENT,
     TUT_VID,
-    OWNER_ID, JOIN_REQUEST_ENABLE ,SECOND_JOIN_REQUEST_ENABLE ,JOIN_REQUEST_ENABLE ,FORCE_SUB_CHANNEL ,FORCE_SUB_CHANNEL2
+    OWNER_ID,
 )
 from helper_func import subscribed, encode, decode, get_messages, get_shortlink, get_verify_status, update_verify_status, get_exp_time
 from database.database import add_user, del_user, full_userbase, present_user
 from shortzy import Shortzy
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 
 @Bot.on_message(filters.command('start') & filters.private & subscribed)
 async def start_command(client: Client, message: Message):
@@ -145,7 +141,7 @@ async def start_command(client: Client, message: Message):
             verify_status = await get_verify_status(id)
             if IS_VERIFY and not verify_status['is_verified']:
                 short_url = f"api.shareus.io"
-                full_tut_url = f"https://t.me/All_Movie_Star_Link"
+                full_tut_url = f"https://t.me/How_to_download_tutorial_idk/2"
                 token = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
                 await update_verify_status(id, verify_token=token, link="")
                 link = await get_shortlink(SHORTLINK_URL, SHORTLINK_API,f'https://telegram.dog/{client.username}?start=verify_{token}')
@@ -169,83 +165,44 @@ REPLY_ERROR = """<code>Use this command as a replay to any telegram message with
 #=====================================================================================##
 
     
-   
-# Define the main logic
-
-@Bot.on_message(filters.command("start") & filters.private)
+    
+@Bot.on_message(filters.command('start') & filters.private)
 async def not_joined(client: Client, message: Message):
-    try:
-        await send_join_request(client, message)
-    except Exception as e:
-        logger.error(f"Error in not_joined: {e}")
-        await message.reply("There was an error processing your request. Please try again later.")
-
-
-async def send_join_request(client: Client, message: Message):
-    try:
-        # First channel join request
-        if JOIN_REQUEST_ENABLE:
-            try:
-                invite = await client.create_chat_invite_link(
-                    chat_id=FORCE_SUB_CHANNEL,
-                    creates_join_request=True
-                )
-                ButtonUrl = invite.invite_link
-                first_channel_name = (await client.get_chat(FORCE_SUB_CHANNEL)).title
-            except Exception as e:
-                logger.error(f"Error creating invite link for first channel: {e}")
-                ButtonUrl = f"https://t.me/{client.username}"  # Fallback URL
-                first_channel_name = "First Channel"
-        else:
-            ButtonUrl = f"https://t.me/{client.username}"  # Default URL
-            first_channel_name = "First Channel"
-
-        # Second channel join request
-        if SECOND_JOIN_REQUEST_ENABLE:
-            try:
-                second_invite = await client.create_chat_invite_link(
-                    chat_id=FORCE_SUB_CHANNEL2,
-                    creates_join_request=True
-                )
-                SecondButtonUrl = second_invite.invite_link
-                second_channel_name = (await client.get_chat(FORCE_SUB_CHANNEL2)).title
-            except Exception as e:
-                logger.error(f"Error creating invite link for second channel: {e}")
-                SecondButtonUrl = f"https://t.me/{client.username}"  # Fallback URL
-                second_channel_name = "Second Channel"
-        else:
-            SecondButtonUrl = f"https://t.me/{client.username}"  # Default URL
-            second_channel_name = "Second Channel"
-
-        # "Try Again" button logic
-        try_again_url = f"https://t.me/{client.username}?start={message.command[1]}" if len(message.command) > 1 and message.command[1].strip() else f"https://t.me/{client.username}?start=start"
-
-        # Buttons for subscription
-        buttons = [
-            [InlineKeyboardButton(f"Join {first_channel_name}", url=ButtonUrl)],
-            [InlineKeyboardButton(f"Join {second_channel_name}", url=SecondButtonUrl)],
-            [InlineKeyboardButton("Try Again", url=try_again_url)]
+    buttons = [
+        [
+            InlineKeyboardButton(
+                "Join Channel",
+                url = client.invitelink),
+            InlineKeyboardButton(
+                "Join Channel",
+                url = client.invitelink2),
         ]
-
-        # Reply to the user
-        await message.reply(
-            text=FORCE_MSG.format(
-                first=message.from_user.first_name,
-                last=message.from_user.last_name,
-                username=None if not message.from_user.username else '@' + message.from_user.username,
-                mention=message.from_user.mention,
-                id=message.from_user.id,
-            ),
-            reply_markup=InlineKeyboardMarkup(buttons),
-            quote=True,
-            disable_web_page_preview=True
+    ]
+    try:
+        buttons.append(
+            [
+                InlineKeyboardButton(
+                    text = 'Try Again',
+                    url = f"https://t.me/{client.username}?start={message.command[1]}"
+                )
+            ]
         )
+    except IndexError:
+        pass
 
-    except Exception as e:
-        logger.error(f"Error in send_join_request: {e}")
-        await message.reply("There was an error processing your request. Please try again later.")
+    await message.reply(
+        text = FORCE_MSG.format(
+                first = message.from_user.first_name,
+                last = message.from_user.last_name,
+                username = None if not message.from_user.username else '@' + message.from_user.username,
+                mention = message.from_user.mention,
+                id = message.from_user.id
+            ),
+        reply_markup = InlineKeyboardMarkup(buttons),
+        quote = True,
+        disable_web_page_preview = True
+    )
 
-   
 @Bot.on_message(filters.command('users') & filters.private & filters.user(ADMINS))
 async def get_users(client: Bot, message: Message):
     msg = await client.send_message(chat_id=message.chat.id, text=WAIT_MSG)
